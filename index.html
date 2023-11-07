@@ -1,21 +1,42 @@
 <html>
 <head>
 <script>
-// 这个变量存放了你的mp3文件的URL的前缀部分，你可以根据你的需要修改
-var mp3URL = "https://jkamkk.github.io/mp3/";
+// 这个变量存放了你的仓库的API地址，你可以根据你的仓库名和用户名修改
+var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
 
-// 这个数组存放了你的mp3文件的文件名，你可以根据你的需要增加或删除
-var mp3s = [
-  "1.mp3",
-  "2.mp3",
-  "3.mp3",
-  "4.mp3",
-  "5.mp3",
-  "6.mp3",
-  "7.mp3",
-  "8.mp3",
-  "9.mp3"
-];
+// 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
+function getJSON(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "json";
+    xhr.onload = function() {
+      if (xhr.status == 200) {
+        resolve(xhr.response);
+      } else {
+        reject(new Error(xhr.statusText));
+      }
+    };
+    xhr.onerror = function() {
+      reject(new Error(xhr.statusText));
+    };
+    xhr.send();
+  });
+}
+
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3文件的URL，返回一个数组
+function getMp3s(repoAPI) {
+  return getJSON(repoAPI).then(function(data) {
+    var mp3s = [];
+    for (var i = 0; i < data.length; i++) {
+      var item = data[i];
+      if (item.type == "file" && item.name.endsWith(".mp3")) {
+        mp3s.push(item.download_url);
+      }
+    }
+    return mp3s;
+  });
+}
 
 // 这个函数用来从数组中随机选择一个元素并返回
 function randomChoice(arr) {
@@ -25,8 +46,12 @@ function randomChoice(arr) {
 
 // 这个函数用来重定向到一个随机的mp3文件的URL
 function redirectToMp3() {
-  var mp3 = randomChoice(mp3s);
-  window.location.href = mp3URL + mp3; // 这里用字符串拼接的方式生成完整的URL
+  getMp3s(repoAPI).then(function(mp3s) {
+    var mp3 = randomChoice(mp3s);
+    window.location.href = mp3;
+  }).catch(function(error) {
+    console.error(error);
+  });
 }
 </script>
 </head>
