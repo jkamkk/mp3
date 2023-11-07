@@ -1,29 +1,58 @@
-<?php
-// 这个变量存放了你的仓库的根目录，你可以根据你的仓库名和用户名修改
-$root = "https://jkamkk.github.io/mp3/";
+<html>
+<head>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    // 定义一个函数，用于获取仓库中的mp3文件列表
+    function getMp3List() {
+      // 使用GitHub API，根据仓库的id和路径，获取文件列表
+      var url = "https://api.github.com/repositories/715027815/contents/.github/workflows";
+      // 使用ajax方法，发送一个get请求，获取返回的json数据
+      $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+          // 定义一个空数组，用于存储mp3文件的url
+          var mp3List = [];
+          // 遍历返回的数据，筛选出mp3文件，并将它们的url添加到数组中
+          for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            if (item.name.endsWith(".mp3")) {
+              mp3List.push(item.download_url);
+            }
+          }
+          // 调用redirectRandomMp3函数，传入mp3文件列表，随机重定向到一个文件
+          redirectRandomMp3(mp3List);
+        },
+        error: function(error) {
+          // 如果请求失败，显示错误信息
+          alert("获取mp3文件列表失败：" + error);
+        }
+      });
+    }
 
-// 这个函数用来获取仓库中所有的mp3文件的路径，返回一个数组
-function getMp3s($root) {
-  $mp3s = glob("*.mp3");
-  foreach ($mp3s as &$mp3) {
-    $mp3 = $root . $mp3;
-  }
-  return $mp3s;
-}
-
-// 这个函数用来从数组中随机选择一个元素并返回
-function randomChoice($arr) {
-  $index = array_rand($arr);
-  return $arr[$index];
-}
-
-// 这个函数用来重定向到一个随机的mp3文件的URL
-function redirectToMp3($root) {
-  $mp3s = getMp3s($root);
-  $mp3 = randomChoice($mp3s);
-  header("Location: $mp3");
-}
-
-// 调用这个函数
-redirectToMp3($root);
-?>
+    // 定义一个函数，用于随机重定向到一个mp3文件
+    function redirectRandomMp3(mp3List) {
+      // 如果mp3文件列表为空，显示提示信息
+      if (mp3List.length == 0) {
+        alert("没有找到mp3文件，请检查您的仓库");
+        return;
+      }
+      // 使用Math.random方法，生成一个0到mp3文件列表长度之间的随机整数
+      var index = Math.floor(Math.random() * mp3List.length);
+      // 根据随机数，从mp3文件列表中获取一个url
+      var mp3Url = mp3List[index];
+      // 使用window.location.href属性，将当前页面重定向到mp3文件的url
+      window.location.href = mp3Url;
+    }
+  </script>
+</head>
+<body>
+  <script>
+    // 当页面加载完成后，调用getMp3List函数，获取mp3文件列表
+    $(document).ready(function() {
+      getMp3List();
+    });
+  </script>
+</body>
+</html>
