@@ -21,8 +21,8 @@
               mp3List.push(item.download_url);
             }
           }
-          // 调用redirectRandomMp3函数，传入mp3文件列表，随机重定向到一个文件
-          redirectRandomMp3(mp3List);
+          // 调用playRandomMp3函数，传入mp3文件列表，随机播放一个文件
+          playRandomMp3(mp3List);
         },
         error: function(error) {
           // 如果请求失败，显示错误信息
@@ -31,8 +31,8 @@
       });
     }
 
-    // 定义一个函数，用于随机重定向到一个mp3文件
-    function redirectRandomMp3(mp3List) {
+    // 定义一个函数，用于随机播放一个mp3文件
+    function playRandomMp3(mp3List) {
       // 如果mp3文件列表为空，显示提示信息
       if (mp3List.length == 0) {
         alert("没有找到mp3文件，请检查您的仓库");
@@ -42,12 +42,19 @@
       var index = Math.floor(Math.random() * mp3List.length);
       // 根据随机数，从mp3文件列表中获取一个url
       var mp3Url = mp3List[index];
-      // 使用window.location.href属性，将当前页面重定向到mp3文件的url
-      window.location.href = mp3Url;
+      // 获取页面中的audio元素
+      var audio = document.getElementById("audio");
+      // 设置audio元素的src属性为mp3文件的url
+      audio.src = mp3Url;
+      // 调用audio元素的play方法，开始播放音乐
+      audio.play();
     }
   </script>
 </head>
 <body>
+  <h1>欢迎来到我的音乐播放器</h1>
+  <p>每次打开这个页面，都会随机播放一个我仓库中的mp3文件</p>
+  <audio id="audio" controls></audio>
   <script>
     // 当页面加载完成后，调用getMp3List函数，获取mp3文件列表
     $(document).ready(function() {
