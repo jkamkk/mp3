@@ -1,28 +1,61 @@
-<audio id="player" controls>
-  <source src="1.mp3" type="audio/mpeg">
-  <source src="2.mp3" type="audio/mpeg">
-  <source src="3.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
-<script>
-  // 获取audio元素的引用
-  var player = document.getElementById("player");
-  // 获取audio元素的子元素，即source标签的集合
-  var sources = player.children;
-  // 定义一个函数，用来随机选择一个source标签，并设置为当前的播放源
-  function randomPlay() {
-    // 生成一个随机数，范围是0到sources的长度减1
-    // 这里使用sources.length来获取仓库中的mp3文件的数量
-    var index = Math.floor(Math.random() * sources.length);
-    // 获取对应索引的source标签
-    var source = sources[index];
-    // 设置audio元素的src属性为source标签的src属性
-    player.src = source.src;
-    // 播放audio元素
-    player.play();
-  }
-  // 当audio元素加载完成时，调用randomPlay函数
-  player.addEventListener("loadeddata", randomPlay);
-  // 当audio元素播放结束时，调用randomPlay函数
-  player.addEventListener("ended", randomPlay);
-</script>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            color: #333333;
+        }
+        audio {
+            display: block;
+            margin: 0 auto;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333333;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>随机播放 GitHub 仓库中的 mp3 文件</h1>
+    <audio id="player" controls>
+        <source id="source" src="" type="audio/mpeg">
+        您的浏览器不支持 audio 标签。
+    </audio>
+    <button id="play">播放</button>
+    <script>
+        // 定义一个数组，存放您的 mp3 文件的路径
+        var mp3s = ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3", "9.mp3"];
+        // 获取 audio 标签和 source 标签的引用
+        var player = document.getElementById("player");
+        var source = document.getElementById("source");
+        // 获取 button 标签的引用
+        var play = document.getElementById("play");
+        // 定义一个函数，用于随机选择一个 mp3 文件，并设置 source 标签的 src 属性
+        function randomPlay() {
+            // 生成一个 0 到 mp3s 数组长度减 1 的随机整数
+            var index = Math.floor(Math.random() * mp3s.length);
+            // 获取 mp3s 数组中对应索引的 mp3 文件的路径
+            var mp3 = mp3s[index];
+            // 设置 source 标签的 src 属性为 mp3 文件的路径
+            source.src = mp3;
+            // 重新加载 audio 标签的资源
+            player.load();
+            // 播放 audio 标签的资源
+            player.play();
+        }
+        // 为 button 标签添加点击事件的监听器，调用 randomPlay 函数
+        play.addEventListener("click", randomPlay);
+    </script>
+</body>
+</html>
