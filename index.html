@@ -1,17 +1,20 @@
 <html>
 <head>
 <script>
-// 这个数组存放了你的mp3文件的URL，你可以根据你的需要增加或删除
+// 这个变量存放了你的mp3文件的URL的前缀部分，你可以根据你的需要修改
+var mp3URL = "https://jkamkk.github.io/mp3/";
+
+// 这个数组存放了你的mp3文件的文件名，你可以根据你的需要增加或删除
 var mp3s = [
-  "https://jkamkk.github.io/mp3/1.mp3",
-  "https://jkamkk.github.io/mp3/2.mp3",
-  "https://jkamkk.github.io/mp3/3.mp3",
-  "https://jkamkk.github.io/mp3/4.mp3",
-  "https://jkamkk.github.io/mp3/5.mp3",
-  "https://jkamkk.github.io/mp3/6.mp3",
-  "https://jkamkk.github.io/mp3/7.mp3",
-  "https://jkamkk.github.io/mp3/8.mp3",
-  "https://jkamkk.github.io/mp3/9.mp3"
+  "1.mp3",
+  "2.mp3",
+  "3.mp3",
+  "4.mp3",
+  "5.mp3",
+  "6.mp3",
+  "7.mp3",
+  "8.mp3",
+  "9.mp3"
 ];
 
 // 这个函数用来从数组中随机选择一个元素并返回
@@ -23,12 +26,10 @@ function randomChoice(arr) {
 // 这个函数用来重定向到一个随机的mp3文件的URL
 function redirectToMp3() {
   var mp3 = randomChoice(mp3s);
-  window.location.href = mp3;
+  window.location.href = mp3URL + mp3; // 这里用字符串拼接的方式生成完整的URL
 }
 </script>
 </head>
 <body onload="redirectToMp3()">
-<h1>欢迎来到我的mp3下载页面</h1>
-<p>请稍等，正在为你生成一个随机的mp3文件的下载链接...</p>
 </body>
 </html>
