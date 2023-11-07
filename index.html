@@ -12,6 +12,7 @@
   // 定义一个函数，用来随机选择一个source标签，并设置为当前的播放源
   function randomPlay() {
     // 生成一个随机数，范围是0到sources的长度减1
+    // 这里使用sources.length来获取仓库中的mp3文件的数量
     var index = Math.floor(Math.random() * sources.length);
     // 获取对应索引的source标签
     var source = sources[index];
