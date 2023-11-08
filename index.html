@@ -44,17 +44,9 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 这个函数用来重定向到一个随机的mp3文件的URL
-function redirectToMp3() {
-  getMp3s(repoAPI).then(function(mp3s) {
-    var mp3 = randomChoice(mp3s);
-    window.location.href = mp3;
-  }).catch(function(error) {
-    console.error(error);
-  });
-}
 </script>
 </head>
-<body onload="redirectToMp3()">
+<body>
+<div id="mp3"></div>
 </body>
 </html>
