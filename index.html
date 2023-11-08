@@ -38,14 +38,18 @@ function getMp3s(repoAPI) {
   });
 }
 
+// 这个函数用来从数组中随机选择一个元素并返回
+function randomChoice(arr) {
+  var index = Math.floor(Math.random() * arr.length);
+  return arr[index];
+}
+
 // 定义一个函数，用来随机选择一个mp3文件，并返回其URL
 function getRandomMp3() {
   // 调用getMp3s函数，获取仓库中的mp3文件的URL数组
   return getMp3s(repoAPI).then(function(mp3s) {
-    // 生成一个0到mp3s.length-1之间的随机整数
-    var index = Math.floor(Math.random() * mp3s.length);
-    // 从数组中取出对应的URL
-    var url = mp3s[index];
+    // 调用randomChoice函数，从数组中随机选择一个URL
+    var url = randomChoice(mp3s);
     // 返回URL
     return url;
   });
@@ -54,17 +58,28 @@ function getRandomMp3() {
 function showMp3Url() {
   // 获取一个随机的mp3URL
   getRandomMp3().then(function(url) {
-    // 获取网页中的<p>元素，用来显示URL
-    var p = document.getElementById("mp3url");
-    // 将<p>元素的内容设置为URL
-    p.innerHTML = url;
+    // 获取网页中的<a>元素，用来显示URL
+    var a = document.getElementById("mp3url");
+    // 将<a>元素的href属性设置为URL
+    a.href = url;
+    // 将<a>元素的文本内容设置为URL
+    a.textContent = url;
   });
 }
 </script>
+<style>
+/* 添加了一些样式，用来调整URL的字体大小和位置 */
+#mp3url {
+  font-size: 36px; /* 设置字体大小为36像素 */
+  text-align: center; /* 设置文本居中对齐 */
+  margin-top: 50vh; /* 设置上边距为50%的视口高度 */
+  transform: translateY(-50%); /* 设置垂直方向的偏移量为-50%的元素高度 */
+}
+</style>
 </head>
 <body>
 <!-- 删除了<h1>元素，不显示任何文本提示 -->
-<p id="mp3url"></p>
+<a id="mp3url"></a>
 <script>
 // 当网页加载完成后，调用showMp3Url函数
 window.onload = showMp3Url;
