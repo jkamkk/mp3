@@ -26,17 +26,17 @@ function getJSON(url) {
   });
 }
 
-// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3文件的URL，返回一个数组
-function getMp3s(repoAPI) {
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3或mp4文件的URL，返回一个数组
+function getMedia(repoAPI) {
   return getJSON(repoAPI).then(function(data) {
-    var mp3s = [];
+    var media = [];
     for (var i = 0; i < data.length; i++) {
       var item = data[i];
-      if (item.type == "file" && item.name.endsWith(".mp3")) {
-        mp3s.push(item.download_url);
+      if (item.type == "file" && (item.name.endsWith(".mp3") || item.name.endsWith(".mp4"))) {
+        media.push(item.download_url);
       }
     }
-    return mp3s;
+    return media;
   });
 }
 
@@ -46,22 +46,27 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 这个函数用来重定向到一个随机的mp3文件的URL
-function redirectToMp3() {
-  // 使用Promise.all方法来同时获取两个仓库的mp3文件列表
-  Promise.all([getMp3s(repoAPI), getMp3s(repoAPI2)]).then(function(results) {
+// 这个函数用来重定向到一个随机的mp3或mp4文件的URL
+function redirectToMedia() {
+  // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
+  Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
     // 将两个数组合并成一个
-    var mp3s = results[0].concat(results[1]);
+    var media = results[0].concat(results[1]);
     // 从合并后的数组中随机选择一个元素
-    var mp3 = randomChoice(mp3s);
-    // 重定向到它的URL
-    window.location.href = mp3;
+    var file = randomChoice(media);
+    // 获取文件名和仓库名
+    var fileName = file.split("/").pop();
+    var repoName = file.split("/")[4];
+    // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
+    var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
+    // 重定向到新的URL
+    window.location.href = newURL;
   }).catch(function(error) {
     console.error(error);
   });
 }
 </script>
 </head>
-<body onload="redirectToMp3()">
+<body onload="redirectToMedia()">
 </body>
 </html>
