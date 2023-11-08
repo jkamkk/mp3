@@ -1,24 +1,58 @@
 <html>
 <head>
 <script>
-// 引入follow-redirects库
-var followRedirects = require('follow-redirects');
-// 设置一个要打开的URL
-var url = 'https://jkamkk.github.io/mp3/';
-// 使用followRedirects.http.get方法来发送GET请求
-followRedirects.http.get(url, function (response) {
-  // 打印响应的状态码
-  console.log('Response status: ' + response.statusCode);
-  // 打印重定向的URL数组
-  console.log('Redirects: ' + JSON.stringify(response.redirects));
-  // 获取要重定向的URL，这里假设是数组的第一个元素
-  var redirectURL = response.redirects[0];
-  // 打印要重定向的URL
-  console.log('Redirecting to: ' + redirectURL);
-  // 使用window.location.href来重定向到要重定向的URL
-  window.location.href = redirectURL;
-});
+// 这个变量存放了你的仓库的API地址，你可以根据你的仓库名和用户名修改
+var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
 
+// 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
+function getJSON(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "json";
+    xhr.onload = function() {
+      if (xhr.status == 200) {
+        resolve(xhr.response);
+      } else {
+        reject(new Error(xhr.statusText));
+      }
+    };
+    xhr.onerror = function() {
+      reject(new Error(xhr.statusText));
+    };
+    xhr.send();
+  });
+}
+
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3文件的URL，返回一个数组
+function getMp3s(repoAPI) {
+  return getJSON(repoAPI).then(function(data) {
+    var mp3s = [];
+    for (var i = 0; i < data.length; i++) {
+      var item = data[i];
+      if (item.type == "file" && item.name.endsWith(".mp3")) {
+        mp3s.push(item.download_url);
+      }
+    }
+    return mp3s;
+  });
+}
+
+// 这个函数用来从数组中随机选择一个元素并返回
+function randomChoice(arr) {
+  var index = Math.floor(Math.random() * arr.length);
+  return arr[index];
+}
+
+// 这个函数用来重定向到一个随机的mp3文件的URL
+function redirectToMp3() {
+  getMp3s(repoAPI).then(function(mp3s) {
+    var mp3 = randomChoice(mp3s);
+    window.location.href = mp3;
+  }).catch(function(error) {
+    console.error(error);
+  });
+}
 </script>
 </head>
 <body onload="redirectToMp3()">
