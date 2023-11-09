@@ -32,7 +32,7 @@ function getMedia(repoAPI) {
     var media = [];
     for (var i = 0; i < data.length; i++) {
       var item = data[i];
-      if (item.type == "file" && (item.name.endsWith(".mp3") || item.name.endsWith(".mp4"))) {
+      if (item.type == "file" && (item.name.endsWith(".mp3") || item.name.endsWith(".mp4") || item.name.endsWith(".m4a") || item.name.endsWith(".wav"))) {
         media.push(item.download_url);
       }
     }
