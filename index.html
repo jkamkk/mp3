@@ -59,6 +59,8 @@ function redirectToMedia() {
     var repoName = file.split("/")[4];
     // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
     var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
+    // 在重定向之前，向用户发送重定向的URL信息，这里我使用了alert函数，你也可以使用其他的方法
+    alert(newURL); // 这是我修改的代码，我把“你将被重定向到 ”这个文本删了
     // 重定向到新的URL
     window.location.href = newURL;
   }).catch(function(error) {
