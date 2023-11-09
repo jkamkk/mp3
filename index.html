@@ -46,8 +46,8 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 这个函数用来将一个随机的mp3或mp4文件的URL赋值给<iframe>元素的src属性
-function setMedia() {
+// 这个函数用来创建一个媒体元素，并设置其源为一个随机的mp3或mp4文件的URL
+function createMediaElement() {
   // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
   Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
     // 将两个数组合并成一个
@@ -59,18 +59,33 @@ function setMedia() {
     var repoName = file.split("/")[4];
     // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
     var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
-    // 获取<iframe>元素的引用
-    var frame = document.getElementById("frame");
-    // 将新的URL赋值给<iframe>元素的src属性
-    frame.src = newURL;
+    // 创建一个媒体元素，根据文件的后缀名决定是audio还是video
+    var mediaElement;
+    if (fileName.endsWith(".mp3") || fileName.endsWith(".m4a") || fileName.endsWith(".wav")) {
+      mediaElement = document.createElement("audio");
+    } else if (fileName.endsWith(".mp4")) {
+      mediaElement = document.createElement("video");
+    }
+    // 设置媒体元素的属性，包括源、控制器、自动播放、循环播放等
+    mediaElement.setAttribute("src", newURL);
+    mediaElement.setAttribute("controls", "controls");
+    mediaElement.setAttribute("autoplay", "autoplay");
+    mediaElement.setAttribute("loop", "loop");
+    // 将媒体元素添加到页面的body中
+    document.body.appendChild(mediaElement);
+    // 创建一个下载链接，设置其文本和href属性
+    var downloadLink = document.createElement("a");
+    downloadLink.textContent = "下载文件";
+    downloadLink.setAttribute("href", newURL);
+    downloadLink.setAttribute("download", fileName);
+    // 将下载链接添加到页面的body中
+    document.body.appendChild(downloadLink);
   }).catch(function(error) {
     console.error(error);
   });
 }
 </script>
 </head>
-<body onload="setMedia()">
-  <!-- 在这里添加一个<iframe>元素，给它一个id，以及一些属性 -->
-  <iframe id="frame" width="700px" height="100px" frameborder="0" scrolling="no"></iframe>
+<body onload="createMediaElement()">
 </body>
 </html>
