@@ -3,6 +3,8 @@
 <script>
 // 这个变量存放了你的仓库的API地址，你可以根据你的仓库名和用户名修改
 var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
+// 这个变量存放了你的另一个仓库的API地址，你可以根据你的仓库名和用户名修改
+var repoAPI2 = "https://api.github.com/repos/jkamkk/hmp3/contents/";
 
 // 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
 function getJSON(url) {
@@ -24,17 +26,17 @@ function getJSON(url) {
   });
 }
 
-// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3文件的URL，返回一个数组
-function getMp3s(repoAPI) {
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3或mp4文件的URL，返回一个数组
+function getMedia(repoAPI) {
   return getJSON(repoAPI).then(function(data) {
-    var mp3s = [];
+    var media = [];
     for (var i = 0; i < data.length; i++) {
       var item = data[i];
-      if (item.type == "file" && item.name.endsWith(".mp3")) {
-        mp3s.push(item.download_url);
+      if (item.type == "file" && (item.name.endsWith(".mp3") || item.name.endsWith(".mp4") || item.name.endsWith(".m4a") || item.name.endsWith(".wav"))) {
+        media.push(item.download_url);
       }
     }
-    return mp3s;
+    return media;
   });
 }
 
@@ -44,45 +46,32 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 定义一个函数，用来随机选择一个mp3文件，并返回其URL
-function getRandomMp3() {
-  // 调用getMp3s函数，获取仓库中的mp3文件的URL数组
-  return getMp3s(repoAPI).then(function(mp3s) {
-    // 调用randomChoice函数，从数组中随机选择一个URL
-    var url = randomChoice(mp3s);
-    // 返回URL
-    return url;
-  });
-}
-// 定义一个函数，用来在网页上显示一个mp3URL
-function showMp3Url() {
-  // 获取一个随机的mp3URL
-  getRandomMp3().then(function(url) {
-    // 获取网页中的<a>元素，用来显示URL
-    var a = document.getElementById("mp3url");
-    // 将<a>元素的href属性设置为URL
-    a.href = url;
-    // 将<a>元素的文本内容设置为URL
-    a.textContent = url;
+// 这个函数用来将一个随机的mp3或mp4文件的URL赋值给<audio>元素的src属性
+function setMedia() {
+  // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
+  Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
+    // 将两个数组合并成一个
+    var media = results[0].concat(results[1]);
+    // 从合并后的数组中随机选择一个元素
+    var file = randomChoice(media);
+    // 获取文件名和仓库名
+    var fileName = file.split("/").pop();
+    var repoName = file.split("/")[4];
+    // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
+    var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
+    // 获取<audio>元素的引用
+    var player = document.getElementById("player");
+    // 将新的URL赋值给<audio>元素的src属性
+    player.src = newURL;
+  }).catch(function(error) {
+    console.error(error);
   });
 }
 </script>
-<style>
-/* 添加了一些样式，用来调整URL的字体大小和位置 */
-#mp3url {
-  font-size: 36px; /* 设置字体大小为36像素 */
-  text-align: center; /* 设置文本居中对齐 */
-  margin-top: 50vh; /* 设置上边距为50%的视口高度 */
-  transform: translateY(-50%); /* 设置垂直方向的偏移量为-50%的元素高度 */
-}
-</style>
 </head>
-<body>
-<!-- 删除了<h1>元素，不显示任何文本提示 -->
-<a id="mp3url"></a>
-<script>
-// 当网页加载完成后，调用showMp3Url函数
-window.onload = showMp3Url;
-</script>
+<body onload="setMedia()">
+  <!-- 在这里添加一个<audio>元素，给它一个id，以及一些属性 -->
+  <audio id="player" controls autoplay loop></audio>
 </body>
 </html>
+
