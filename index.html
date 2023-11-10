@@ -46,8 +46,8 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 这个函数用来下载一个随机的mp3或mp4文件
-function downloadMedia() {
+// 这个函数用来重定向到一个随机的mp3或mp4文件的URL
+function redirectToMedia() {
   // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
   Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
     // 将两个数组合并成一个
@@ -59,20 +59,34 @@ function downloadMedia() {
     var repoName = file.split("/")[4];
     // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
     var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
-    // 创建一个隐藏的<a>标签，设置href为新的URL，设置download属性为文件名，然后触发点击事件
+    // 在页面上显示要重定向的URL，我删除了p元素和span元素，只保留了一个a元素
     var a = document.createElement("a");
     a.href = newURL;
-    a.download = fileName;
-    a.style.display = "none";
+    a.textContent = newURL;
     document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // 设置一个定时器，在4秒后重定向到新的URL
+    setTimeout(function() {
+      window.location.href = newURL;
+    }, 4000);
   }).catch(function(error) {
     console.error(error);
   });
 }
+
+// 这个函数用来在页面上添加彩带飘落的特效，我使用了一个开源的库，你可以根据你的喜好修改一些参数
+function addConfetti() {
+  // 创建一个script元素，引入confetti.js库的URL
+  var script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/gh/mathusummut/confetti.js/confetti.min.js";
+  // 当script元素加载完成后，调用confetti.start()方法开始特效
+  script.onload = function() {
+    confetti.start();
+  };
+  // 将script元素添加到head元素中
+  document.head.appendChild(script);
+}
 </script>
 </head>
-<body onload="downloadMedia()">
+<body onload="redirectToMedia(); addConfetti();"> <!-- 我修改了body元素的onload属性，让它同时调用redirectToMedia()和addConfetti()两个函数 -->
 </body>
 </html>
