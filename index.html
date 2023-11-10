@@ -7,9 +7,6 @@ var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
 // 这个变量存放了你想要获取的文件的扩展名，你可以根据你的需要添加或删除
 var extensions = [".mp4", ".m4a", ".wav", ".mp3"];
 
-// 这个变量存放了重定向的延迟时间，单位是毫秒，你可以根据你的需要修改
-var delay = 3000;
-
 // 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
 function getJSON(url) {
   return new Promise(function(resolve, reject) {
@@ -115,34 +112,21 @@ function getNextUrl(files) {
   return url;
 }
 
-// 这个函数用来在页面上显示URL的文本和剩余时间
-function showUrl(url, timeLeft) {
-  document.getElementById("url").textContent = url + " (" + timeLeft + " ms)";
-}
-
-// 这个函数用来重定向到一个按顺序的文件的URL，并在页面上显示要重定向的URL文本
-function redirectToFile() {
+// 这个函数用来在页面上显示一个按顺序的文件的URL文本，并添加一个超链接，点击后可以跳转到该URL
+function showFileUrl() {
   getFiles(repoAPI).then(function(files) {
     var file = getNextUrl(files);
-    var startTime = Date.now();
-    var animation = function() {
-      var currentTime = Date.now();
-      var timeLeft = delay - (currentTime - startTime);
-      if (timeLeft > 0) {
-        showUrl(file, timeLeft);
-        window.requestAnimationFrame(animation);
-      } else {
-        window.location.href = file;
-      }
-    };
-    window.requestAnimationFrame(animation);
+    var link = document.createElement("a");
+    link.href = file;
+    link.textContent = file;
+    link.style = "font-family: monospace; font-size: 24px; text-align: center;";
+    document.body.appendChild(link);
   }).catch(function(error) {
     console.error(error);
   });
 }
 </script>
 </head>
-<body onload="redirectToFile()">
-<div id="url" style="font-family: monospace; font-size: 24px; text-align: center;"></div>
+<body onload="showFileUrl()">
 </body>
 </html>
