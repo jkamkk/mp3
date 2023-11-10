@@ -46,8 +46,8 @@ function randomChoice(arr) {
   return arr[index];
 }
 
-// 这个函数用来生成一个随机的mp3或mp4文件的URL，并添加到页面中的隐藏的<iframe>标签中
-function addMediaToFrame() {
+// 这个函数用来下载一个随机的mp3或mp4文件
+function downloadMedia() {
   // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
   Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
     // 将两个数组合并成一个
@@ -59,19 +59,20 @@ function addMediaToFrame() {
     var repoName = file.split("/")[4];
     // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
     var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
-    // 获取页面中的<iframe>标签
-    var frame = document.getElementById("downloadFrame");
-    // 设置<iframe>标签的src属性为新的URL
-    frame.src = file;
+    // 创建一个隐藏的<a>标签，设置href为新的URL，设置download属性为文件名，然后触发点击事件
+    var a = document.createElement("a");
+    a.href = newURL;
+    a.download = fileName;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }).catch(function(error) {
     console.error(error);
   });
 }
 </script>
 </head>
-<body onload="addMediaToFrame()">
-  <!-- 这里是一个隐藏的<iframe>标签，它的src属性会在页面加载时被设置 -->
-  <iframe id="downloadFrame" style="display:none"></iframe>
+<body onload="downloadMedia()">
 </body>
 </html>
-
