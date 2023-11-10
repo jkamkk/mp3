@@ -115,14 +115,27 @@ function getNextUrl(files) {
   return url;
 }
 
+// 这个函数用来在页面上显示URL的文本和剩余时间
+function showUrl(url, timeLeft) {
+  document.getElementById("url").textContent = url + " (" + timeLeft + " ms)";
+}
+
 // 这个函数用来重定向到一个按顺序的文件的URL，并在页面上显示要重定向的URL文本
 function redirectToFile() {
   getFiles(repoAPI).then(function(files) {
     var file = getNextUrl(files);
-    document.getElementById("url").textContent = file;
-    setTimeout(function() {
-      window.location.href = file;
-    }, delay);
+    var startTime = Date.now();
+    var animation = function() {
+      var currentTime = Date.now();
+      var timeLeft = delay - (currentTime - startTime);
+      if (timeLeft > 0) {
+        showUrl(file, timeLeft);
+        window.requestAnimationFrame(animation);
+      } else {
+        window.location.href = file;
+      }
+    };
+    window.requestAnimationFrame(animation);
   }).catch(function(error) {
     console.error(error);
   });
