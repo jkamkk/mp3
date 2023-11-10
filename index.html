@@ -5,7 +5,10 @@
 var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
 
 // 这个变量存放了你想要获取的文件的扩展名，你可以根据你的需要添加或删除
-var extensions = [".mp3", ".mp4", ".m4a", ".wav"];
+var extensions = [".mp4", ".m4a", ".wav", ".mp3"];
+
+// 这个变量存放了重定向的延迟时间，单位是毫秒，你可以根据你的需要修改
+var delay = 3000;
 
 // 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
 function getJSON(url) {
@@ -27,7 +30,7 @@ function getJSON(url) {
   });
 }
 
-// 这个函数用来从仓库的API地址获取文件列表，并过滤出符合扩展名的文件的URL和名称，返回一个对象数组
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出符合扩展名的文件的URL和文件名，返回一个对象数组
 function getFiles(repoAPI) {
   return getJSON(repoAPI).then(function(data) {
     var files = [];
@@ -39,12 +42,6 @@ function getFiles(repoAPI) {
     }
     return files;
   });
-}
-
-// 这个函数用来从数组中随机选择一个元素并返回
-function randomChoice(arr) {
-  var index = Math.floor(Math.random() * arr.length);
-  return arr[index];
 }
 
 // 这个函数用来从数组中随机打乱元素的顺序，并返回一个新数组
@@ -59,84 +56,80 @@ function shuffleArray(arr) {
   return newArr;
 }
 
-// 这个函数用来检查一个文件名是否和另一个文件名相似，相似的条件是除了扩展名外，其他部分有超过一半的字符相同，返回一个布尔值
-function isSimilar(name1, name2) {
-  var base1 = name1.slice(0, -4);
-  var base2 = name2.slice(0, -4);
-  var len = Math.min(base1.length, base2.length);
-  var count = 0;
-  for (var i = 0; i < len; i++) {
-    if (base1[i] == base2[i]) {
-      count++;
-    }
-  }
-  return count > len / 2;
+// 这个函数用来从数组中选择一个元素并返回，同时从数组中删除该元素
+function popChoice(arr) {
+  var index = Math.floor(Math.random() * arr.length);
+  var choice = arr[index];
+  arr.splice(index, 1);
+  return choice;
 }
 
-// 这个函数用来从文件列表中生成一个随机的顺序列表，要求相似文件名的文件不能在顺序中连续，返回一个URL数组
+// 这个函数用来从文件列表中生成一个随机顺序的URL数组，同时避免相似文件名的文件在顺序中连续
 function getRandomOrder(files) {
   var order = [];
-  var shuffled = shuffleArray(files);
-  var last = null;
-  while (shuffled.length > 0) {
-    var file = randomChoice(shuffled);
-    if (last == null || !isSimilar(file.name, last.name)) {
-      order.push(file.url);
-      shuffled.splice(shuffled.indexOf(file), 1);
-      last = file;
-    }
+  var candidates = shuffleArray(files);
+  while (candidates.length > 0) {
+    var file = popChoice(candidates);
+    order.push(file.url);
+    var similar = candidates.filter(function(f) {
+      return f.name.slice(0, -4) == file.name.slice(0, -4);
+    });
+    candidates = candidates.filter(function(f) {
+      return f.name.slice(0, -4) != file.name.slice(0, -4);
+    });
+    candidates = candidates.concat(similar);
   }
   return order;
 }
 
-// 这个函数用来从本地存储中获取当前的顺序列表和索引，如果不存在则从文件列表中生成一个新的顺序列表和索引，返回一个对象
-function getOrderAndIndex() {
+// 这个函数用来从本地存储中获取当前的URL顺序和索引，如果不存在则从文件列表中生成一个新的顺序和索引
+function getOrderAndIndex(files) {
   var order = localStorage.getItem("order");
   var index = localStorage.getItem("index");
   if (order == null || index == null) {
-    getFiles(repoAPI).then(function(files) {
-      order = getRandomOrder(files);
-      index = 0;
-      localStorage.setItem("order", JSON.stringify(order));
-      localStorage.setItem("index", index);
-      return {order: order, index: index};
-    }).catch(function(error) {
-      console.error(error);
-    });
+    order = getRandomOrder(files);
+    index = 0;
   } else {
     order = JSON.parse(order);
     index = parseInt(index);
-    return {order: order, index: index};
   }
+  return {order: order, index: index};
 }
 
-// 这个函数用来重定向到一个按照顺序列表的文件的URL，并更新本地存储中的索引，如果顺序列表已经用完，则生成一个新的顺序列表和索引
-function redirectToFile() {
-  var orderAndIndex = getOrderAndIndex();
-  var order = orderAndIndex.order;
-  var index = orderAndIndex.index;
-  var file = order[index];
-  window.location.href = file;
+// 这个函数用来将当前的URL顺序和索引保存到本地存储中
+function saveOrderAndIndex(order, index) {
+  localStorage.setItem("order", JSON.stringify(order));
+  localStorage.setItem("index", index.toString());
+}
+
+// 这个函数用来从当前的URL顺序中获取下一个URL，并更新索引，如果顺序已经用完，则从文件列表中生成一个新的顺序
+function getNextUrl(files) {
+  var {order, index} = getOrderAndIndex(files);
+  var url = order[index];
   index++;
   if (index >= order.length) {
-    localStorage.removeItem("order");
-    localStorage.removeItem("index");
-  } else {
-    localStorage.setItem("index", index);
+    order = getRandomOrder(files);
+    index = 0;
   }
+  saveOrderAndIndex(order, index);
+  return url;
 }
 
-// 这个函数用来在页面上显示要重定向的文件的URL
-function showFile() {
-  var orderAndIndex = getOrderAndIndex();
-  var order = orderAndIndex.order;
-  var index = orderAndIndex.index;
-  var file = order[index];
-  document.getElementById("file").innerText = file;
+// 这个函数用来重定向到一个按顺序的文件的URL，并在页面上显示要重定向的URL文本
+function redirectToFile() {
+  getFiles(repoAPI).then(function(files) {
+    var file = getNextUrl(files);
+    document.getElementById("url").textContent = file;
+    setTimeout(function() {
+      window.location.href = file;
+    }, delay);
+  }).catch(function(error) {
+    console.error(error);
+  });
 }
 </script>
 </head>
-<body onload="showFile()">
-<div id="file"></div>
+<body onload="redirectToFile()">
+<div id="url" style="font-family: monospace; font-size: 24px; text-align: center;"></div>
 </body>
 </html>
