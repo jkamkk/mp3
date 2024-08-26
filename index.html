@@ -1,89 +1,72 @@
 <html>
 <head>
 <script>
-// 从仓库的API地址获取文件列表，并过滤出符合扩展名的文件的URL和文件名，返回一个对象数组
-async function getFiles(repoAPI) {
-  let data = await fetch(repoAPI).then(res => res.json());
-  return data.filter(item => item.type == "file" && extensions.includes(item.name.slice(-4)))
-             .map(item => ({url: item.download_url, name: item.name}));
+// 这个变量存放了你的仓库的API地址，你可以根据你的仓库名和用户名修改
+var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/";
+// 这个变量存放了你的另一个仓库的API地址，你可以根据你的仓库名和用户名修改
+var repoAPI2 = "https://api.github.com/repos/jkamkk/hmp3/contents/";
+
+// 这个函数用来从一个URL获取JSON数据，并返回一个Promise对象
+function getJSON(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "json";
+    xhr.onload = function() {
+      if (xhr.status == 200) {
+        resolve(xhr.response);
+      } else {
+        reject(new Error(xhr.statusText));
+      }
+    };
+    xhr.onerror = function() {
+      reject(new Error(xhr.statusText));
+    };
+    xhr.send();
+  });
 }
 
-// 从数组中随机打乱元素的顺序，并返回一个新数组
-function shuffleArray(arr) {
-  return arr.slice().sort(() => Math.random() - 0.5);
+// 这个函数用来从仓库的API地址获取文件列表，并过滤出mp3或mp4文件的URL，返回一个数组
+function getMedia(repoAPI) {
+  return getJSON(repoAPI).then(function(data) {
+    var media = [];
+    for (var i = 0; i < data.length; i++) {
+      var item = data[i];
+      if (item.type == "file" && (item.name.endsWith(".mp3") || item.name.endsWith(".mp4"))) {
+        media.push(item.download_url);
+      }
+    }
+    return media;
+  });
 }
 
-// 从数组中选择一个元素并返回，同时从数组中删除该元素
-function popChoice(arr) {
-  return arr.splice(Math.floor(Math.random() * arr.length), 1)[0];
+// 这个函数用来从数组中随机选择一个元素并返回
+function randomChoice(arr) {
+  var index = Math.floor(Math.random() * arr.length);
+  return arr[index];
 }
 
-// 从文件列表中生成一个随机顺序的URL数组，同时避免相似文件名的文件在顺序中连续
-function getRandomOrder(files) {
-  let order = [];
-  let candidates = shuffleArray(files);
-  while (candidates.length > 0) {
-    let file = popChoice(candidates);
-    order.push(file.url);
-    let similar = candidates.filter(f => f.name.slice(0, -4) == file.name.slice(0, -4));
-    candidates = candidates.filter(f => f.name.slice(0, -4) != file.name.slice(0, -4));
-    candidates.push(...similar);
-  }
-  return order;
-}
-
-// 从本地存储中获取当前的URL顺序和索引，如果不存在则从文件列表中生成一个新的顺序和索引
-function getOrderAndIndex(files) {
-  let order = localStorage.getItem("order");
-  let index = localStorage.getItem("index");
-  if (order == null || index == null) {
-    order = getRandomOrder(files);
-    index = 0;
-  } else {
-    order = JSON.parse(order);
-    index = parseInt(index);
-  }
-  return {order, index};
-}
-
-// 将当前的URL顺序和索引保存到本地存储中
-function saveOrderAndIndex(order, index) {
-  localStorage.setItem("order", JSON.stringify(order));
-  localStorage.setItem("index", index.toString());
-}
-
-// 从当前的URL顺序中获取下一个URL，并更新索引，如果顺序已经用完，则从文件列表中生成一个新的顺序
-async function getNextUrl(files) {
-  let {order, index} = getOrderAndIndex(files);
-  let url = order[index];
-  index++;
-  if (index >= order.length) {
-    order = getRandomOrder(files);
-    index = 0;
-  }
-  saveOrderAndIndex(order, index);
-  return url;
-}
-
-// 重定向到一个按顺序的文件的URL，并在页面上显示要重定向的URL文本
-async function redirectToFile() {
-  try {
-    let files = await getFiles(repoAPI);
-    let file = await getNextUrl(files);
-    document.getElementById("url").textContent = file;
-    setTimeout(() => window.location.href = file, delay);
-  } catch (error) {
+// 这个函数用来重定向到一个随机的mp3或mp4文件的URL
+function redirectToMedia() {
+  // 使用Promise.all方法来同时获取两个仓库的mp3或mp4文件列表
+  Promise.all([getMedia(repoAPI), getMedia(repoAPI2)]).then(function(results) {
+    // 将两个数组合并成一个
+    var media = results[0].concat(results[1]);
+    // 从合并后的数组中随机选择一个元素
+    var file = randomChoice(media);
+    // 获取文件名和仓库名
+    var fileName = file.split("/").pop();
+    var repoName = file.split("/")[4];
+    // 拼接成新的URL，使用 https://jkamkk.github.io/ 加上仓库名和文件名
+    var newURL = "https://jkamkk.github.io/" + repoName + "/" + fileName;
+    // 重定向到新的URL
+    window.location.href = newURL;
+  }).catch(function(error) {
     console.error(error);
-  }
+  });
 }
-
-// 这些变量可以根据你的需要修改
-var repoAPI = "https://api.github.com/repos/jkamkk/mp3/contents/"; // 你的仓库的API地址
-var extensions = [".mp4", ".m4a", ".wav", ".mp3"]; // 你想要获取的文件的扩展名
-var delay = 3000; // 重定向的延迟时间，单位是毫秒
 </script>
 </head>
-<body onload="redirectToFile()">
-<div id="url" style="font-family: monospace; font-size: 24px; text-align: center;"></div>
+<body onload="redirectToMedia()">
 </body>
 </html>
